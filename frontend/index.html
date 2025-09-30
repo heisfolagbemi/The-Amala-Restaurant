@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChatBot</title>
+
+    <!-- Font Awesome for the send button -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f4f4f9;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .flex {
+        display: flex;
+        align-items: center;
+        margin-top: 20px;
+      }
+      .logo {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        margin-right: 10px;
+      }
+      .title h1 {
+        margin: 0;
+        color: #333;
+      }
+      .chatbot-title {
+        margin: 20px 0 10px;
+        color: #444;
+      }
+      .messages {
+        list-style: none;
+        padding: 15px;
+        margin: 0;
+        width: 90%;
+        max-width: 500px;
+        height: 400px;
+        background: white;
+        border-radius: 10px;
+        overflow-y: auto;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      }
+      .messages ol {
+        margin: 10px 0;
+        padding: 10px;
+        border-radius: 8px;
+        background: #f1f1f1;
+        word-wrap: break-word;
+      }
+      .bot-message {
+        background: #e8f0fe;
+      }
+      .user-message {
+        background: #d1f7c4;
+        text-align: right;
+      }
+      #form {
+        display: flex;
+        justify-content: center;
+        margin: 10px;
+        width: 90%;
+        max-width: 500px;
+      }
+      .user-input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px 0 0 6px;
+        font-size: 14px;
+      }
+      button {
+        background: #4caf50;
+        border: none;
+        color: white;
+        padding: 0 15px;
+        border-radius: 0 6px 6px 0;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      button:hover {
+        background: #45a049;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="flex">
+      <img
+        class="logo"
+        src="./media/VectorStock_ Delicious Restaurant Menu Icons.jpeg"
+        alt="Amala logo"
+      />
+      <div class="title"><h1>Ìyá Mọ́riá Alámàlà</h1></div>
+    </div>
+
+    <h1 class="chatbot-title">ChatBot</h1>
+
+    <ul class="messages">
+      <ol class="bot-message">
+        <strong>ChatBot:</strong>
+        <b>
+          Hello! Welcome to Ìyá Mọ́riá Alámàlà. Let me know how we can serve you today. Kindly follow the prompts below, thank you.<br />
+          Select 1 to Place an order <br />
+          Select 99 to Checkout order <br />
+          Select 98 to See order history <br />
+          Select 97 to See current order <br />
+          Select 0 to Cancel order
+        </b>
+      </ol>
+    </ul>
+
+    <form id="form">
+      <input
+        type="text"
+        class="user-input"
+        placeholder="Type your message here..."
+      />
+      <button type="submit"><i class="fa-solid fa-paper-plane"></i></button>
+    </form>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+
+      const form = document.getElementById("form");
+      const input = document.querySelector(".user-input");
+      const messages = document.querySelector(".messages");
+
+      // Handle form submission
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (input.value.trim() !== "") {
+          // Show user message
+          const userMsg = document.createElement("ol");
+          userMsg.classList.add("user-message");
+          userMsg.innerHTML = `<strong>You:</strong> <b>${input.value}</b>`;
+          messages.appendChild(userMsg);
+
+          // Send to server
+          socket.emit("userMessage", input.value);
+
+          messages.scrollTop = messages.scrollHeight;
+          input.value = "";
+        }
+      });
+
+      // Listen for bot messages from the server
+      socket.on("botMessage", (msg) => {
+        const botMsg = document.createElement("ol");
+        botMsg.classList.add("bot-message");
+        botMsg.innerHTML = `<strong>ChatBot:</strong> <b>${msg}</b>`;
+        messages.appendChild(botMsg);
+        messages.scrollTop = messages.scrollHeight;
+      });
+    </script>
+  </body>
+</html>
