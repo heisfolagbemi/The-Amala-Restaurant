@@ -1,4 +1,3 @@
-// models/Session.js
 const mongoose = require("mongoose");
 
 const OrderItemSchema = new mongoose.Schema(
@@ -15,7 +14,8 @@ const SessionSchema = new mongoose.Schema({
   deviceId: { type: String, index: true },
   socketId: String,
   currentOrder: { type: [OrderItemSchema], default: [] },
-  history: { type: [Object], default: [] }, // store order summaries
+  history: { type: [Object], default: [] }, 
+  inMenu: { type: Boolean, default: false }, 
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

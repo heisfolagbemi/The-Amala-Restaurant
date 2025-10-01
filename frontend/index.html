@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ChatBot</title>
 
-    <!-- Font Awesome for the send button -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -108,15 +107,7 @@
 
     <ul class="messages">
       <ol class="bot-message">
-        <strong>ChatBot:</strong>
-        <b>
-          Hello! Welcome to Ìyá Mọ́riá Alámàlà. Let me know how we can serve you today. Kindly follow the prompts below, thank you.<br />
-          Select 1 to Place an order <br />
-          Select 99 to Checkout order <br />
-          Select 98 to See order history <br />
-          Select 97 to See current order <br />
-          Select 0 to Cancel order
-        </b>
+        
       </ol>
     </ul>
 
@@ -137,17 +128,14 @@
       const input = document.querySelector(".user-input");
       const messages = document.querySelector(".messages");
 
-      // Handle form submission
       form.addEventListener("submit", (e) => {
         e.preventDefault();
         if (input.value.trim() !== "") {
-          // Show user message
           const userMsg = document.createElement("ol");
           userMsg.classList.add("user-message");
           userMsg.innerHTML = `<strong>You:</strong> <b>${input.value}</b>`;
           messages.appendChild(userMsg);
 
-          // Send to server
           socket.emit("userMessage", input.value);
 
           messages.scrollTop = messages.scrollHeight;
@@ -155,7 +143,6 @@
         }
       });
 
-      // Listen for bot messages from the server
       socket.on("botMessage", (msg) => {
         const botMsg = document.createElement("ol");
         botMsg.classList.add("bot-message");

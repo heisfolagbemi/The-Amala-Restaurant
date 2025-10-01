@@ -7,7 +7,7 @@ const axios = require("axios");
 
 const MenuItem = require("./Models/menuItem");
 const Order = require("./Models/order");
-const Session = require("./Models/session.");
+const Session = require("./Models/session");
 
 const app = express();
 app.use(express.static("frontend"));
@@ -16,15 +16,14 @@ app.use(express.json());
 const server = http.createServer(app);
 const io = socketio(server);
 
-// ========== MONGO CONNECTION ==========
 mongoose
   .connect(process.env.MONGO_DB_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(() => console.log("✅ MongoDB connected"))
+  .then(() => console.log(" MongoDB connected"))
   .catch((error) => {
-    console.error("❌ MongoDB error:", error);
+    console.error(" MongoDB error:", error);
     process.exit(1);
   });
 
@@ -59,11 +58,10 @@ async function ensureMenu() {
         options: [{ name: "Flavor", choices: ["Fanta", "Pepsi", "Water"] }],
       },
     ]);
-    console.log("🍽️ Sample menu seeded");
+    console.log(" Sample menu seeded");
   }
 }
 ensureMenu();
-
 
 const menuText = `
 Select an option:
@@ -75,7 +73,7 @@ Select an option:
 `;
 
 io.on("connection", (socket) => {
-  console.log("✅ New WebSocket connection");
+  console.log(" New WebSocket connection");
 
   socket.emit("botMessage", "Welcome to RestaurantBot! " + menuText);
 
@@ -84,65 +82,74 @@ io.on("connection", (socket) => {
   });
 
   socket.on("userMessage", async (msg) => {
-    console.log(`Message from user: ${msg}`);
+    console.log(` Message from user: ${msg}`);
     msg = msg.toString().trim();
 
-    let session = await Session.findOne({ socketId: socket.id });
-    if (!session) {
-      session = await Session.create({
+    let userSession = await Session.findOne({ socketId: socket.id });
+    if (!userSession) {
+      userSession = await Session.create({
         socketId: socket.id,
         currentOrder: [],
-        orderHistory: [],
+        history: [],
       });
     }
 
-    // 1. Place order
     if (msg === "1") {
       const items = await MenuItem.find();
       let response = "🍴 Menu:\n";
       items.forEach((item, index) => {
         response += `${index + 1}. ${item.name} - ₦${item.price}\n`;
       });
-      response += "\nSend the item number to add it to your order.";
+      response += "\n👉 Send the item number to add it to your order.";
       socket.emit("botMessage", response);
       return;
     }
 
-    if (!isNaN(msg) && parseInt(msg) > 0) {
-      const items = await MenuItem.find();
-      const index = parseInt(msg) - 1;
-      if (items[index]) {
-        session.currentOrder.push(items[index]);
-        await session.save();
-        socket.emit(
-          "botMessage",
-          `${items[index].name} added to your order ✅\n\n${menuText}`
-        );
-      } else {
-        socket.emit("botMessage", " Invalid selection.\n\n" + menuText);
-      }
-      return;
-    }
+    if (!isNaN(msg) && parseInt(msg) > 0 && !["99","98","97","0"].includes(msg)) {
+  const items = await MenuItem.find();
+  const index = parseInt(msg) - 1;
+  if (items[index]) {
+    userSession.currentOrder.push(items[index]);
+    await userSession.save();
+    socket.emit(
+      "botMessage",
+      ` ${items[index].name} added to your order.\n\n${menuText}`
+    );
+  } else {
+    socket.emit("botMessage", " Invalid selection.\n\n" + menuText);
+  }
+  return;
+}
 
     if (msg === "99") {
-      if (session.currentOrder.length === 0) {
+      if (userSession.currentOrder.length === 0) {
         socket.emit("botMessage", " No order to place.\n\n" + menuText);
         return;
       }
 
+      const total = userSession.currentOrder.reduce(
+        (sum, i) => sum + Number(i.price),
+        0
+      );
+
       const order = await Order.create({
-        items: session.currentOrder,
-        total: session.currentOrder.reduce((sum, i) => sum + i.price, 0),
+        items: userSession.currentOrder,
+        total,
       });
-      session.orderHistory.push(order);
-      await session.save();
+
+      userSession.history.push(order);
+      userSession.currentOrder = [];
+      await userSession.save();
 
       try {
+        const totalAmount = Math.floor(total * 100); 
+        console.log("totalAmount sent to Paystack:", totalAmount);
+
         const response = await axios.post(
           "https://api.paystack.co/transaction/initialize",
           {
-            email: "test@example.com", 
-            amount: order.total * 100, 
+            email: "jonanjorin@gmail.com",
+            amount: totalAmount,
             callback_url: `${process.env.BASE_URL}/paystack/callback`,
           },
           {
@@ -155,11 +162,11 @@ io.on("connection", (socket) => {
         const authUrl = response.data.data.authorization_url;
         socket.emit(
           "botMessage",
-          ` Your total is ₦${order.total}.\nPlease pay using this link:\n${authUrl}`
+          ` Your total is ₦${total}.\nPlease pay here:\n${authUrl}`
         );
       } catch (error) {
         console.error(
-          "Paystack init error:",
+          " Paystack init error:",
           error.response?.data || error.message
         );
         socket.emit(
@@ -170,12 +177,14 @@ io.on("connection", (socket) => {
       return;
     }
 
+
+    
     if (msg === "98") {
-      if (session.orderHistory.length === 0) {
+      if (userSession.history.length === 0) {
         socket.emit("botMessage", " No past orders.\n\n" + menuText);
       } else {
         let history = " Order History:\n";
-        session.orderHistory.forEach((ord, idx) => {
+        userSession.history.forEach((ord, idx) => {
           history += `${idx + 1}. ${ord.items
             .map((i) => i.name)
             .join(", ")} - ₦${ord.total}\n`;
@@ -185,12 +194,13 @@ io.on("connection", (socket) => {
       return;
     }
 
+    
     if (msg === "97") {
-      if (session.currentOrder.length === 0) {
+      if (userSession.currentOrder.length === 0) {
         socket.emit("botMessage", " No current order.\n\n" + menuText);
       } else {
         let orderText = " Current order:\n";
-        session.currentOrder.forEach((item, idx) => {
+        userSession.currentOrder.forEach((item, idx) => {
           orderText += `${idx + 1}. ${item.name} - ₦${item.price}\n`;
         });
         socket.emit("botMessage", orderText + "\n\n" + menuText);
@@ -198,16 +208,19 @@ io.on("connection", (socket) => {
       return;
     }
 
+    
     if (msg === "0") {
-      session.currentOrder = [];
-      await session.save();
+      userSession.currentOrder = [];
+      await userSession.save();
       socket.emit("botMessage", " Order cancelled.\n\n" + menuText);
       return;
     }
 
+    
     socket.emit("botMessage", " Invalid option.\n\n" + menuText);
   });
 });
+
 
 app.get("/paystack/callback", async (req, res) => {
   const reference = req.query.reference;
@@ -225,7 +238,7 @@ app.get("/paystack/callback", async (req, res) => {
       res.send(" Payment failed or incomplete.");
     }
   } catch (error) {
-    console.error("Verify error:", error.response?.data || error.message);
+    console.error(" Verify error:", error.response?.data || error.message);
     res.send(" Error verifying payment.");
   }
 });
