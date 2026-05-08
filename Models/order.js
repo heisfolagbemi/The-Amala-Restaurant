@@ -1,4 +1,4 @@
-// models/Order.js
+
 const mongoose = require("mongoose");
 
 const OrderItemSchema = new mongoose.Schema(
@@ -14,8 +14,8 @@ const OrderItemSchema = new mongoose.Schema(
 const OrderSchema = new mongoose.Schema({
   deviceId: String,
   items: [OrderItemSchema],
-  amount: Number, // in Naira
-  status: { type: String, default: "open" }, // open / pending-payment / paid / scheduled / cancelled
+  amount: Number, 
+  status: { type: String, default: "open" },
   paystackReference: String,
   paymentInit: Object,
   scheduledFor: Date,
