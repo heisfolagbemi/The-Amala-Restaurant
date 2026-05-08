@@ -27,6 +27,7 @@ mongoose
     process.exit(1);
   });
 
+
 async function ensureMenu() {
   const count = await MenuItem.countDocuments();
   if (count === 0) {
@@ -104,27 +105,6 @@ io.on("connection", (socket) => {
       return;
     }
 
-<<<<<<< HEAD
-    if (
-      !isNaN(msg) &&
-      parseInt(msg) > 0 &&
-      !["99", "98", "97", "0"].includes(msg)
-    ) {
-      const items = await MenuItem.find();
-      const index = parseInt(msg) - 1;
-      if (items[index]) {
-        userSession.currentOrder.push(items[index]);
-        await userSession.save();
-        socket.emit(
-          "botMessage",
-          ` ${items[index].name} added to your order.\n\n${menuText}`,
-        );
-      } else {
-        socket.emit("botMessage", " Invalid selection.\n\n" + menuText);
-      }
-      return;
-    }
-=======
     if (!isNaN(msg) && parseInt(msg) > 0 && !["99","98","97","0"].includes(msg)) {
   const items = await MenuItem.find();
   const index = parseInt(msg) - 1;
@@ -140,7 +120,6 @@ io.on("connection", (socket) => {
   }
   return;
 }
->>>>>>> 61f3b2610b336e6f7b96f7d61abbcb32be42ea28
 
     if (msg === "99") {
       if (userSession.currentOrder.length === 0) {
@@ -150,11 +129,7 @@ io.on("connection", (socket) => {
 
       const total = userSession.currentOrder.reduce(
         (sum, i) => sum + Number(i.price),
-<<<<<<< HEAD
-        0,
-=======
         0
->>>>>>> 61f3b2610b336e6f7b96f7d61abbcb32be42ea28
       );
 
       const order = await Order.create({
@@ -167,11 +142,7 @@ io.on("connection", (socket) => {
       await userSession.save();
 
       try {
-<<<<<<< HEAD
-        const totalAmount = Math.floor(total * 100);
-=======
         const totalAmount = Math.floor(total * 100); 
->>>>>>> 61f3b2610b336e6f7b96f7d61abbcb32be42ea28
         console.log("totalAmount sent to Paystack:", totalAmount);
 
         const response = await axios.post(
@@ -185,30 +156,22 @@ io.on("connection", (socket) => {
             headers: {
               Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
             },
-          },
+          }
         );
 
         const authUrl = response.data.data.authorization_url;
         socket.emit(
           "botMessage",
-<<<<<<< HEAD
-          ` Your total is ₦${total}.\nPlease pay here:\n${authUrl}`,
-=======
           ` Your total is ₦${total}.\nPlease pay here:\n${authUrl}`
->>>>>>> 61f3b2610b336e6f7b96f7d61abbcb32be42ea28
         );
       } catch (error) {
         console.error(
           " Paystack init error:",
-<<<<<<< HEAD
-          error.response?.data || error.message,
-=======
           error.response?.data || error.message
->>>>>>> 61f3b2610b336e6f7b96f7d61abbcb32be42ea28
         );
         socket.emit(
           "botMessage",
-          " Payment initialization failed. Try again later.",
+          " Payment initialization failed. Try again later."
         );
       }
       return;
@@ -266,7 +229,7 @@ app.get("/paystack/callback", async (req, res) => {
       `https://api.paystack.co/transaction/verify/${reference}`,
       {
         headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
-      },
+      }
     );
 
     if (response.data.data.status === "success") {
