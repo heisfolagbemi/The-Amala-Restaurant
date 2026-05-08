@@ -1,10 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+<<<<<<< HEAD
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ìyá Mọ́riá Alámàlà - Chat</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+=======
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChatBot</title>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+>>>>>>> 61f3b2610b336e6f7b96f7d61abbcb32be42ea28
     <style>
         :root {
             --primary-color: #7b2cbf; /* Warm Purple */
@@ -143,6 +156,7 @@
         </div>
     </header>
 
+<<<<<<< HEAD
     <main id="chat-container">
         <!-- Welcome Message -->
         <div class="message bot-msg">
@@ -150,6 +164,13 @@
             <span class="timestamp">Just now</span>
         </div>
     </main>
+=======
+    <ul class="messages">
+      <ol class="bot-message">
+        
+      </ol>
+    </ul>
+>>>>>>> 61f3b2610b336e6f7b96f7d61abbcb32be42ea28
 
     <footer>
         <form id="form">
@@ -183,6 +204,7 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         };
 
+<<<<<<< HEAD
         form.addEventListener("submit", (e) => {
             e.preventDefault();
             const message = input.value.trim();
@@ -200,6 +222,30 @@
                 addMessage(msg, 'bot');
             }, 500);
         });
+=======
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (input.value.trim() !== "") {
+          const userMsg = document.createElement("ol");
+          userMsg.classList.add("user-message");
+          userMsg.innerHTML = `<strong>You:</strong> <b>${input.value}</b>`;
+          messages.appendChild(userMsg);
+
+          socket.emit("userMessage", input.value);
+
+          messages.scrollTop = messages.scrollHeight;
+          input.value = "";
+        }
+      });
+
+      socket.on("botMessage", (msg) => {
+        const botMsg = document.createElement("ol");
+        botMsg.classList.add("bot-message");
+        botMsg.innerHTML = `<strong>ChatBot:</strong> <b>${msg}</b>`;
+        messages.appendChild(botMsg);
+        messages.scrollTop = messages.scrollHeight;
+      });
+>>>>>>> 61f3b2610b336e6f7b96f7d61abbcb32be42ea28
     </script>
 </body>
 </html>
